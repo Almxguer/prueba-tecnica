@@ -1,21 +1,22 @@
 from fastapi import FastAPI, HTTPException, Header, Depends
 import chromadb
 import os
-import openai
+from openai import OpenAI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+#  cliente OpenAI
+client = OpenAI()
 
 # apiKey - Servidor
 API_KEY = "crediclub"
 
 # ChromaDB
-client = chromadb.PersistentClient(path="./chroma_db")
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
 try:
-    collection = client.get_collection(name="tiktok_scripts")
+    collection = chroma_client.get_collection(name="tiktok_scripts")
 except Exception:
-    collection = client.create_collection(name="tiktok_scripts")
+    collection = chroma_client.create_collection(name="tiktok_scripts")
 
 app = FastAPI(
     title="Generador de Guiones Virales",
@@ -31,11 +32,11 @@ def verify_api_key(x_api_key: str = Header(...)):
 # Endpoint - buscar guion
 @app.post("/buscar-guiones", dependencies=[Depends(verify_api_key)])
 def buscar_guiones(query: str):
-    response = openai.Embedding.create(
+    response = client.embeddings.create(
         model="text-embedding-3-large",
         input=query
     )
-    query_embedding = response['data'][0]['embedding']
+    query_embedding = response.data[0].embedding
 
     results = collection.query(
         query_embeddings=[query_embedding],
@@ -56,11 +57,11 @@ def buscar_guiones(query: str):
 # Endpoint - crear guion
 @app.post("/crear-guion", dependencies=[Depends(verify_api_key)])
 def crear_guion(tema: str):
-    response = openai.Embedding.create(
+    response = client.embeddings.create(
         model="text-embedding-3-large",
         input=tema
     )
-    tema_embedding = response['data'][0]['embedding']
+    tema_embedding = response.data[0].embedding
 
     results = collection.query(
         query_embeddings=[tema_embedding],
@@ -71,14 +72,14 @@ def crear_guion(tema: str):
 
     prompt = f"Usa este contexto para crear un guion viral sobre '{tema}':\n{context}\n\nGuion:"
 
-    completion = openai.ChatCompletion.create(
+    completion = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=1000,
         temperature=0.8,
     )
 
-    guion = completion['choices'][0]['message']['content']
+    guion = completion.choices[0].message.content
 
     return {"guion": guion}
 
