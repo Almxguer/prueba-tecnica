@@ -2,7 +2,8 @@ from fastapi import FastAPI, HTTPException, Header, Depends
 import chromadb
 import os
 import openai
-from fastapi.staticfiles import StaticFiles  
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -22,7 +23,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Validación 
+# Validación
 def verify_api_key(x_api_key: str = Header(...)):
     if x_api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API Key")
@@ -81,9 +82,7 @@ def crear_guion(tema: str):
 
     return {"guion": guion}
 
-# Página web
-app.mount("/", StaticFiles(directory="pagina_web", html=True), name="pagina_web")
-
+# Endpoint - ver si la colección tiene datos
 @app.get("/test-collection")
 def test_collection():
     try:
@@ -92,3 +91,19 @@ def test_collection():
     except Exception as e:
         return {"error": str(e)}
 
+# Endpoint - ver si la carpeta chroma_db existe y qué contiene
+@app.get("/debug-chromadb-files")
+def debug_chromadb_files():
+    path = "./chroma_db"
+    if not os.path.exists(path):
+        return JSONResponse(status_code=404, content={"error": "La carpeta chroma_db no existe"})
+    
+    files = []
+    for root, dirs, filenames in os.walk(path):
+        for name in filenames:
+            files.append(os.path.join(root, name))
+    
+    return {"files": files}
+
+# Página web
+app.mount("/", StaticFiles(directory="pagina_web", html=True), name="pagina_web")
