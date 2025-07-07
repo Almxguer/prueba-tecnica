@@ -17,18 +17,20 @@ document.getElementById("buscar-btn").addEventListener("click", async () => {
   const resultDiv = document.getElementById("buscar-result");
   resultDiv.textContent = "Buscando...";
   try {
-    const response = await fetch(`/buscar-guiones`, {
+    const response = await fetch(`/buscar-guiones?query=${encodeURIComponent(query)}`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         "x-api-key": apiKey
-      },
-      body: JSON.stringify({ query: query })
+      }
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Error al buscar guiones");
+      let errorText = "Error al buscar guiones";
+      try {
+        const error = await response.json();
+        errorText = error.detail || errorText;
+      } catch {}
+      throw new Error(errorText);
     }
 
     const data = await response.json();
@@ -69,18 +71,20 @@ document.getElementById("crear-btn").addEventListener("click", async () => {
   const resultDiv = document.getElementById("crear-result");
   resultDiv.textContent = "Creando...";
   try {
-    const response = await fetch(`/crear-guion`, {
+    const response = await fetch(`/crear-guion?tema=${encodeURIComponent(tema)}`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         "x-api-key": apiKey
-      },
-      body: JSON.stringify({ tema: tema })
+      }
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Error al crear guion");
+      let errorText = "Error al crear guion";
+      try {
+        const error = await response.json();
+        errorText = error.detail || errorText;
+      } catch {}
+      throw new Error(errorText);
     }
 
     const data = await response.json();
