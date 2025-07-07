@@ -12,7 +12,10 @@ API_KEY = "crediclub"
 
 # Chromabd
 client = chromadb.PersistentClient(path="./chroma_db")
-collection = client.get_collection(name="tiktok_scripts")
+try:
+    collection = client.get_collection(name="tiktok_scripts")
+except Exception:
+    collection = client.create_collection(name="tiktok_scripts")
 
 app = FastAPI(
     title="Generador de Guiones Virales",
