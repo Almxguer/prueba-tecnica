@@ -83,3 +83,12 @@ def crear_guion(tema: str):
 
 # Página web
 app.mount("/", StaticFiles(directory="pagina_web", html=True), name="pagina_web")
+
+@app.get("/test-collection")
+def test_collection():
+    try:
+        count = collection.count()
+        return {"document_count": count}
+    except Exception as e:
+        return {"error": str(e)}
+
