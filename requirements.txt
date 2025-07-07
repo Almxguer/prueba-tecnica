@@ -2,6 +2,3 @@ fastapi
 uvicorn
 chromadb
 openai
-os
-StaticFiles
-HTTPException
