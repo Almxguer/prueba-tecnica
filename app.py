@@ -4,13 +4,12 @@ import os
 import openai
 from fastapi.staticfiles import StaticFiles  
 
-
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# API Key - Servidor
+# apiKey - Servidor
 API_KEY = "crediclub"
 
-# Chromabd
+# ChromaDB
 client = chromadb.PersistentClient(path="./chroma_db")
 try:
     collection = client.get_collection(name="tiktok_scripts")
@@ -23,14 +22,14 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Validacion Apikey
+# Validación 
 def verify_api_key(x_api_key: str = Header(...)):
     if x_api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API Key")
 
 # Endpoint - buscar guion
-@app.post("/buscar-guiones")
-def buscar_guiones(query: str, api_key: str = Depends(verify_api_key)):
+@app.post("/buscar-guiones", dependencies=[Depends(verify_api_key)])
+def buscar_guiones(query: str):
     response = openai.Embedding.create(
         model="text-embedding-3-large",
         input=query
@@ -54,8 +53,8 @@ def buscar_guiones(query: str, api_key: str = Depends(verify_api_key)):
     }
 
 # Endpoint - crear guion
-@app.post("/crear-guion")
-def crear_guion(tema: str, api_key: str = Depends(verify_api_key)):
+@app.post("/crear-guion", dependencies=[Depends(verify_api_key)])
+def crear_guion(tema: str):
     response = openai.Embedding.create(
         model="text-embedding-3-large",
         input=tema
@@ -82,5 +81,5 @@ def crear_guion(tema: str, api_key: str = Depends(verify_api_key)):
 
     return {"guion": guion}
 
-# Pagina web
+# Página web
 app.mount("/", StaticFiles(directory="pagina_web", html=True), name="pagina_web")

@@ -10,19 +10,27 @@ function formatearGuion(guion) {
 document.getElementById("buscar-btn").addEventListener("click", async () => {
   const query = document.getElementById("buscar-input").value.trim();
   if (!query) {
-  alert("Por favor escribe tu consulta antes de buscar.");
-  return;
+    alert("Por favor escribe tu consulta antes de buscar.");
+    return;
   }
 
   const resultDiv = document.getElementById("buscar-result");
   resultDiv.textContent = "Buscando...";
   try {
-    const response = await fetch(`/buscar-guiones?query=${encodeURIComponent(query)}`, {
+    const response = await fetch(`/buscar-guiones`, {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "x-api-key": apiKey
-      }
+      },
+      body: JSON.stringify({ query: query })
     });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Error al buscar guiones");
+    }
+
     const data = await response.json();
 
     if (data.resultados && data.resultados.length > 0) {
@@ -47,26 +55,34 @@ document.getElementById("buscar-btn").addEventListener("click", async () => {
     }
 
   } catch (err) {
-    resultDiv.textContent = "Error: " + err;
+    resultDiv.textContent = "Error: " + err.message;
   }
 });
 
 document.getElementById("crear-btn").addEventListener("click", async () => {
   const tema = document.getElementById("crear-input").value.trim();
   if (!tema) {
-  alert("Por favor escribe el tema del guion antes de crear.");
-  return;
+    alert("Por favor escribe el tema del guion antes de crear.");
+    return;
   }
 
   const resultDiv = document.getElementById("crear-result");
   resultDiv.textContent = "Creando...";
   try {
-    const response = await fetch(`/crear-guion?tema=${encodeURIComponent(tema)}`, {
+    const response = await fetch(`/crear-guion`, {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "x-api-key": apiKey
-      }
+      },
+      body: JSON.stringify({ tema: tema })
     });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Error al crear guion");
+    }
+
     const data = await response.json();
 
     if (data.guion) {
@@ -76,6 +92,6 @@ document.getElementById("crear-btn").addEventListener("click", async () => {
     }
 
   } catch (err) {
-    resultDiv.textContent = "Error: " + err;
+    resultDiv.textContent = "Error: " + err.message;
   }
 });
